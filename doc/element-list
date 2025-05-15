@@ -1,0 +1,11 @@
+jp.co.sss.test
+jp.co.sss.test.bean
+jp.co.sss.test.config
+jp.co.sss.test.controller
+jp.co.sss.test.dto
+jp.co.sss.test.entity
+jp.co.sss.test.form
+jp.co.sss.test.interceptor
+jp.co.sss.test.repository
+jp.co.sss.test.service
+jp.co.sss.test.util
