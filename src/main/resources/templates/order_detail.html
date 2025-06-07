@@ -9,6 +9,15 @@
 		<h4 class="text-left mb-3" th:text="${title}">デフォルトタイトル</h4>
 	
 		<form method="post" th:action="@{/orderConfirm}">
+			
+			<!-- バリデーションエラー表示-->
+			<div th:if="${validationErrors != null}">
+				<div class="alert alert-danger">
+					<ul>
+						<il th:each="error : ${validationErrors}" th:text="${error}"></il>
+					</ul>
+				</div>
+			</div>
 			<h5>＜受け取り場所＞</h5>
 			<div class="form-check p-3 mb-3 d-flex align-items-start">
 				<input class="form-check-input mt-1 me-3" type="radio" name="address" th:value="radio1" th:checked="${selectedRadio == 'radio1'}" />
