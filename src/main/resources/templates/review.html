@@ -6,6 +6,10 @@
 </head>
 <body th:object="${reviewForm}">
 	
+	<div th:if="${errorMessage}" class="alert alert-danger">
+		<p th:text="${errorMessage}"></p>
+	</div>
+	
 	<div class="container mt-4">
 		<h4 class="text-left mb-3" th:text="${title}">デフォルトタイトル</h4>
 		<form method="post" th:action="@{/addReview/{productId}(productId=${productId})}" enctype="multipart/form-data">

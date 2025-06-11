@@ -6,6 +6,10 @@
 </head>
 <body>
 	<h4 class="text-left mb-3" th:text="${title}">デフォルトタイトル</h4>
+	
+	<div th:if="${errorMessage}" class="alert alert-danger">
+		<p th:text="${errorMessage}"></p>
+	</div>
 
 	<div class="container mt-4">
 		<div class="row">

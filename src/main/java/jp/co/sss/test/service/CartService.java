@@ -4,6 +4,8 @@ import java.util.List;
 
 import jakarta.servlet.http.HttpSession;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -12,6 +14,7 @@ import jp.co.sss.test.dto.CartSummary;
 import jp.co.sss.test.entity.Cart;
 import jp.co.sss.test.entity.Product;
 import jp.co.sss.test.entity.User;
+import jp.co.sss.test.exception.CartOperationException;
 import jp.co.sss.test.form.CartForm;
 import jp.co.sss.test.repository.CartRepository;
 import jp.co.sss.test.repository.ProductRepository;
@@ -24,6 +27,8 @@ public class CartService {
 	
     private final CartRepository cartRepository;
     private final ProductRepository productRepository;
+    
+    private static final Logger logger = LoggerFactory.getLogger(CartService.class);
 
     @Autowired
     public CartService(CartRepository cartRepository, ProductRepository productRepository) {
@@ -34,6 +39,7 @@ public class CartService {
     //カート追加
 	public Cart addCart(CartForm form,HttpSession session) {
 
+		try {
 		User user = AuthUtil.getLoginUser();
 
 	    // 今回カート追加情報のみセッションに保存（レジ確認用）
@@ -43,35 +49,45 @@ public class CartService {
 
 		//productIdでProductを取得
 		Product product = productRepository.findById(form.getProductId())
-				.orElseThrow(() -> new RuntimeException("Product not found for Id:" + form.getProductId()));
+				.orElseThrow(() -> new CartOperationException("Product not found for Id:" + form.getProductId()));
 		cartItem.setProduct(product);
 		
 		session.setAttribute("cartItem", cartItem); 
 		
 		return saveCart(user,cartItem);
-				
+		
+		} catch(Exception e) {
+			logger.error("カート追加処理中にエラー発生(商品ID:{})",form.getProductId(),e);
+			throw new CartOperationException("カート追加処理中にエラー発生", e);
+		}
 	}
 	
 	//カート保存
 	public Cart saveCart(User user, Cart cartItem) {
-		//ユーザーが同じ商品をカートに入れているかどうか検索
-		Cart existingCart = cartRepository.findByUser_UserIdAndProduct_ProductId(
-				user.getUserId(),cartItem.getProduct().getProductId()
-				);
 		
-		//上記の検索を結果を使用して登録・更新処理
-		if(existingCart != null) {
-			//ユーザーが既に同じ商品をカートに入れている場合は数量を更新
-			existingCart.setQuantity(existingCart.getQuantity() + cartItem.getQuantity());
-			cartRepository.save(existingCart);
-		} else {
-			//カート内に同じ商品が存在しない場合
-			cartRepository.save(cartItem);
+		try {
+		//ユーザーが同じ商品をカートに入れているかどうか検索
+			Cart existingCart = cartRepository.findByUser_UserIdAndProduct_ProductId(
+					user.getUserId(),cartItem.getProduct().getProductId()
+					);
+		
+			//上記の検索を結果を使用して登録・更新処理
+			if(existingCart != null) {
+				//ユーザーが既に同じ商品をカートに入れている場合は数量を更新
+				existingCart.setQuantity(existingCart.getQuantity() + cartItem.getQuantity());
+				cartRepository.save(existingCart);
+			} else {
+				//カート内に同じ商品が存在しない場合
+				cartRepository.save(cartItem);
+			}
+			
+			//表示させるのは今回カート追加情報なのでcartItemを返す
+			return cartItem;
+			
+		} catch(Exception e) {
+			logger.error("カート保存中にエラー発生(ユーザーID:{}商品ID:{})",user.getUserId(),cartItem.getProduct().getProductId(),e);
+			throw new CartOperationException("カート保存に失敗しました。", e);
 		}
-
-		//表示させるのは今回カート追加情報なのでcartItemを返す
-		return cartItem;
-	
 	}
 	
     // 合計金額の計算（カート内の単品合計）

@@ -50,12 +50,7 @@ public class ReviewController {
 			return "review";
 		}
 		
-		try {
-			reviewService.addReview(productId,form,session,imageFile);
-			return "redirect:/productList";
-		} catch(RuntimeException e) {
-			model.addAttribute("error", "口コミ投稿に失敗しました。");
-			return "review";
-			}
+		reviewService.addReview(productId,form,session,imageFile);
+		return "redirect:/productList";
 	}	
 }
